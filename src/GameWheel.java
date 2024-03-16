@@ -1,5 +1,5 @@
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collections;
 
 public class GameWheel {
     // Main list of slices making up the wheel
@@ -9,123 +9,127 @@ public class GameWheel {
     private ArrayList<Slice> red = new ArrayList<Slice>();
     private ArrayList<Slice> blue = new ArrayList<Slice>();
     private ArrayList<Slice> black = new ArrayList<Slice>();
-    private HashSet<Integer> redpos = new HashSet<>();
-    private HashSet<Integer> blackpos = new HashSet<>();
-    private HashSet<Integer> bluepos = new HashSet<>();
 
     //constructor
     public GameWheel(){
         this.slices = new ArrayList<>();
         for (int i = 0; i < 20; i++) {
-            boolean even = false;
-            if ((i % 2) == 0) {
-                even = true;
-            }
-
             if (i == 0 || i  == 5 || i == 10 || i == 15) {
                 Slice s1 = new Slice("Black", (1000 * i));
-                slices.add(s1);
-                blackpos.add(i);
-            }else if(even == true){
+                black.add(s1);
+
+            } else if (i%2 == 0) {
                 Slice s2 = new Slice("Blue", (100 * i));
-                slices.add(s2);
-                bluepos.add(i);
-            }else if(even == false){
+                blue.add(s2);
+
+            } else {
                 Slice s3 = new Slice("Red", (200 * i));
-                slices.add(s3);
-                redpos.add(i);
+                red.add(s3);
             }
         }
     }
 
-    public String toString(){
+    public String toString() {
         String s = "";
         for (int i = 0; i < 20; i++) {
             s = s + "\n" + (i + " - " + this.slices.get(i).toString());
         }
         return s;
     }
-    public void split(){
+    public void split() {
         for (Slice s : this.slices) {
             if (s.getColor() == "Blue") {
                 this.blue.add(s);
-            }else if (s.getColor() == "Black") {
+            } else if (s.getColor() == "Black") {
                 this.black.add(s);
-            }else if (s.getColor() == "Red") {
+            } else if (s.getColor() == "Red") {
                 this.red.add(s);
             }
         }
     }
-    public void scramble(){
-        HashSet<Integer> clonedBluepos = new HashSet<>(bluepos);
-        HashSet<Integer> clonedRedpos = new HashSet<>(redpos);
-        HashSet<Integer> clonedBlackpos = new HashSet<>(blackpos);
+    public void scramble() {
         split();
+        shuffleListPos();
         this.slices.clear();
-        int x  = 0;
-        for (Integer i : clonedBluepos) {
-            this.slices.add(i, blue.get(x));
-            x++;
-        }
-        x = 0;
-        for (Integer i : clonedRedpos) {
-            this.slices.add(i, red.get(x));
-            x++;
-        }
-        x = 0;
-        for (Integer i : clonedBlackpos) {
-            this.slices.add(i, black.get(x));
-            x++;
-        }
-    }
-    public void sort(){
-        split();
-        this.slices.clear();
-        sortingalg(this.red);
-        sortingalg(this.blue);
-        sortingalg(this.black);
-        int redc = 0;
-        int bluec = 0;
-        int blackc = 0;
+
         for (int i = 0; i < 20; i++) {
-            boolean even = false;
-            if(i % 2 == 0){
-                even = true;
-            }
-            if (i == 0 || i == 5 || i == 10 || i == 15) {
-                this.slices.add(this.black.get(blackc));
-                blackc++;
-            }else if(even = true){
-                this.slices.add(this.blue.get(bluec));
-                bluec++;
-            }else if(even = false){
-                this.slices.add(this.red.get(redc));
-                redc++;
+            if (i%5 == 0) {
+                slices.add(black.get(0));
+                black.remove(0);
+            } else if (i%2 == 0) {
+                slices.add(blue.get(0));
+                blue.remove(0);
+            } else {
+                slices.add(red.get(0));
+                red.remove(0);
             }
         }
+    }
+    public void sort() {
+        split();
+        sortListPos();
+        this.slices.clear();
 
+        for (int i = 0; i < 20; i++) {
+            if (i%5 == 0) {
+                slices.add(black.get(0));
+                black.remove(0);
+            } else if (i%2 == 0) {
+                slices.add(blue.get(0));
+                blue.remove(0);
+            } else {
+                slices.add(red.get(0));
+                red.remove(0);
+            }
+        }
     }
 
-    public Slice spinWheel(){
-        this.currentPos = 0 + (int)(Math.random() * ((19 - 0) + 1));
+    public Slice spinWheel() {
+        this.currentPos = (int)(Math.random() * ((19) + 1));
         return getSlice(this.currentPos);
     }
 
-    public Slice getSlice(int i){
-        if(i > 19 || i < 0){
+    public Slice getSlice(int i) {
+        if (i > 19 || i < 0) {
             return this.slices.get(0);
-        }else{
+        } else {
             return this.slices.get(i);
         }
     }
 
-    private void sortingalg(ArrayList<Slice> tlist){
-        for (int i = 0; i < tlist.size() - 1; i++) {
-            for (int j = 1; j < tlist.size()-1; j++) {
-                if(tlist.get(j).getPrizeAmount() > tlist.get(i).getPrizeAmount()){
-                    Slice temp = tlist.get(j);
-                    tlist.remove(j);
-                    tlist.add(i, temp);
+    private void shuffleListPos() {
+        Collections.shuffle(red);
+        Collections.shuffle(blue);
+        Collections.shuffle(black);
+    }
+
+    private void sortListPos() {
+        // Sorting black
+        for (int i = 0; i < black.size(); i++) {
+
+            for (int j = i+1; j < black.size(); j++) {
+                if (black.get(j).getPrizeAmount() < black.get(i).getPrizeAmount()) {
+                    Collections.swap(black,j,i);
+                }
+            }
+        }
+
+        // Sorting blue
+        for (int i = 0; i < blue.size(); i++) {
+
+            for (int j = i+1; j < blue.size(); j++) {
+                if (blue.get(j).getPrizeAmount() < blue.get(i).getPrizeAmount()) {
+                    Collections.swap(blue,j,i);
+                }
+            }
+        }
+
+        // Sorting red
+        for (int i = 0; i < red.size(); i++) {
+
+            for (int j = i+1; j < red.size(); j++) {
+                if (red.get(j).getPrizeAmount() < red.get(i).getPrizeAmount()) {
+                    Collections.swap(red,j,i);
                 }
             }
         }
